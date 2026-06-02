@@ -1,50 +1,84 @@
 import numpy as np
-import time
-import matplotlib.pyplot as plt
 from itertools import product
 
-# ---------------------------------------------
-# Measure ML decoding time growth
-# ---------------------------------------------
+# ---------------------------------------------------
+# Parameters
+# ---------------------------------------------------
 
-k_values = range(2, 21)   # information bits
-times = []
+k = 4
+n = 7
 
-for k in k_values:
+# Generator matrix for (7,4) Hamming code
+G = np.array([
+    [1,0,0,0,1,1,0],
+    [0,1,0,0,1,0,1],
+    [0,0,1,0,1,1,1],
+    [0,0,0,1,0,1,1]
+])
 
-    n = k + 3  # simple assumption
+# ---------------------------------------------------
+# Generate all possible codewords
+# ---------------------------------------------------
 
-    # Start timer
-    start_time = time.time()
+all_messages = np.array(list(product([0,1], repeat=k)))
 
-    # Generate all possible messages
-    all_messages = list(product([0,1], repeat=k))
+codebook = []
 
-    # Simulate ML exhaustive search
-    # (dummy computation to imitate ML search)
-    for msg in all_messages:
-        _ = sum(msg)
+for msg in all_messages:
+    codeword = np.mod(msg @ G, 2)
+    codebook.append(codeword)
 
-    end_time = time.time()
+codebook = np.array(codebook)
 
-    elapsed = end_time - start_time
+# ---------------------------------------------------
+# Example transmitted message
+# ---------------------------------------------------
 
-    times.append(elapsed)
+tx_bits = np.array([1,0,1,1])
 
-    print(f"k={k}, codewords={2**k}, time={elapsed:.6f} sec")
+tx_codeword = np.mod(tx_bits @ G, 2)
 
-# ---------------------------------------------
-# Plot results
-# ---------------------------------------------
+# BPSK modulation
+tx_signal = 1 - 2 * tx_codeword
 
-plt.figure(figsize=(8,5))
+# ---------------------------------------------------
+# AWGN channel
+# ---------------------------------------------------
 
-plt.plot(k_values, times, marker='o')
+snr_db = 4
 
-plt.xlabel("Number of Information Bits (k)")
-plt.ylabel("Decoding Time (seconds)")
-plt.title("Exponential Complexity of ML Decoding")
+snr_linear = 10**(snr_db/10)
 
-plt.grid(True)
+sigma = np.sqrt(1/(2*snr_linear))
 
-plt.show()
+noise = sigma * np.random.randn(n)
+
+rx_signal = tx_signal + noise
+
+# ---------------------------------------------------
+# ML Decoding
+# ---------------------------------------------------
+
+# Convert all codewords to BPSK
+bpsk_codebook = 1 - 2 * codebook
+
+# Euclidean distance
+distances = np.sum((bpsk_codebook - rx_signal)**2, axis=1)
+
+# Find closest codeword
+best_index = np.argmin(distances)
+
+decoded_codeword = codebook[best_index]
+
+# ---------------------------------------------------
+# Results
+# ---------------------------------------------------
+
+print("Transmitted codeword:")
+print(tx_codeword)
+
+print("\nReceived signal:")
+print(rx_signal)
+
+print("\nDecoded codeword:")
+print(decoded_codeword)

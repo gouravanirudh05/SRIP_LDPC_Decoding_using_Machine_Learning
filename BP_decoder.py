@@ -1,60 +1,127 @@
 import numpy as np
-import time
-import matplotlib.pyplot as plt
 
 # ---------------------------------------------------
-# Simulate BP decoding complexity scaling
+# Parity-check matrix for (7,4) Hamming code
 # ---------------------------------------------------
 
-n_values = range(100, 5001, 300)
+H = np.array([
+    [1,1,1,0,1,0,0],
+    [1,1,0,1,0,1,0],
+    [1,0,1,1,0,0,1]
+])
 
-times = []
-
-iterations = 20
-
-for n in n_values:
-
-    # Assume sparse LDPC graph
-    variable_degree = 3
-
-    # Number of edges in sparse graph
-    edges = n * variable_degree
-
-    # Random messages
-    messages_v_to_c = np.random.randn(edges)
-    messages_c_to_v = np.random.randn(edges)
-
-    start_time = time.time()
-
-    # Simulated BP iterations
-    for _ in range(iterations):
-
-        # Variable-to-check updates
-        messages_v_to_c = np.tanh(messages_c_to_v)
-
-        # Check-to-variable updates
-        messages_c_to_v = np.tanh(messages_v_to_c)
-
-    end_time = time.time()
-
-    elapsed = end_time - start_time
-
-    times.append(elapsed)
-
-    print(f"n={n}, edges={edges}, BP time={elapsed:.6f} sec")
+m, n = H.shape
 
 # ---------------------------------------------------
-# Plot
+# Example transmitted codeword
 # ---------------------------------------------------
 
-plt.figure(figsize=(8,5))
+tx_codeword = np.array([1,0,1,1,0,1,0])
 
-plt.plot(n_values, times, marker='o')
+# BPSK modulation
+tx_signal = 1 - 2 * tx_codeword
 
-plt.xlabel("Code Length (n)")
-plt.ylabel("Decoding Time (seconds)")
-plt.title("Approximate Linear Complexity of BP Decoding")
+# ---------------------------------------------------
+# AWGN channel
+# ---------------------------------------------------
 
-plt.grid(True)
+snr_db = 4
 
-plt.show()
+snr_linear = 10**(snr_db/10)
+
+sigma = np.sqrt(1/(2*snr_linear))
+
+noise = sigma * np.random.randn(n)
+
+rx_signal = tx_signal + noise
+
+# ---------------------------------------------------
+# Channel LLRs
+# ---------------------------------------------------
+
+llr = 2 * rx_signal / (sigma**2)
+
+# ---------------------------------------------------
+# BP Initialization
+# ---------------------------------------------------
+
+iterations = 10
+
+# Messages
+msg_v_to_c = np.zeros((m, n))
+msg_c_to_v = np.zeros((m, n))
+
+# Initialize VN -> CN messages
+for i in range(m):
+    for j in range(n):
+        if H[i,j] == 1:
+            msg_v_to_c[i,j] = llr[j]
+
+# ---------------------------------------------------
+# BP Iterations
+# ---------------------------------------------------
+
+for _ in range(iterations):
+
+    # ---------------------------------------------
+    # Check node update
+    # ---------------------------------------------
+
+    for i in range(m):
+
+        connected_vars = np.where(H[i] == 1)[0]
+
+        for j in connected_vars:
+
+            others = connected_vars[connected_vars != j]
+
+            signs = np.prod(np.sign(msg_v_to_c[i, others]))
+
+            minimum = np.min(np.abs(msg_v_to_c[i, others]))
+
+            msg_c_to_v[i,j] = signs * minimum
+
+    # ---------------------------------------------
+    # Variable node update
+    # ---------------------------------------------
+
+    for j in range(n):
+
+        connected_checks = np.where(H[:,j] == 1)[0]
+
+        for i in connected_checks:
+
+            others = connected_checks[connected_checks != i]
+
+            msg_v_to_c[i,j] = (
+                llr[j]
+                + np.sum(msg_c_to_v[others, j])
+            )
+
+# ---------------------------------------------------
+# Final LLRs
+# ---------------------------------------------------
+
+final_llr = np.copy(llr)
+
+for j in range(n):
+
+    connected_checks = np.where(H[:,j] == 1)[0]
+
+    final_llr[j] += np.sum(msg_c_to_v[connected_checks, j])
+
+# Hard decision
+decoded_bits = (final_llr < 0).astype(int)
+
+# ---------------------------------------------------
+# Results
+# ---------------------------------------------------
+
+print("Transmitted codeword:")
+print(tx_codeword)
+
+print("\nReceived signal:")
+print(rx_signal)
+
+print("\nDecoded codeword:")
+print(decoded_bits)
