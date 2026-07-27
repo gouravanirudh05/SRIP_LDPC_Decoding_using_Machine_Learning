@@ -171,7 +171,7 @@ def main(args):
         if loss < best_loss:
             best_loss = loss
             torch.save(model, os.path.join(args.path, 'best_model'))
-        if epoch % 300 == 0 or epoch in [1, args.epochs]:
+        if epoch == args.epochs:
             test(model, device, test_dataloader_list, EbNo_range_test)
 
 ##################################################################################################################
@@ -180,7 +180,8 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch ECCT')
-    parser.add_argument('--epochs', type=int, default=1000)
+    # Kaggle comparison configuration. The original default was 1000.
+    parser.add_argument('--epochs', type=int, default=500)
     parser.add_argument('--workers', type=int, default=4)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--gpus', type=str, default='-1', help='gpus ids')

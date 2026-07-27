@@ -31,7 +31,7 @@ def train_model(args: Config, model: Optional[torch.nn.Module] = None):
     if model is None:
         model = ECC_Transformer(args, dropout=0).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-    scheduler = CosineAnnealingLR(optimizer, T_max=1000, eta_min=args.eta_min)
+    scheduler = CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=args.eta_min)
 
     logging.info(model)
     logging.info(f'# of Parameters: {np.sum([np.prod(p.shape) for p in model.parameters()])}')
@@ -95,7 +95,6 @@ def aecct_training(config: Config):
     freeze_weights(inference_model, config)
 
     logging.info("Inference evaluation...")
-    config.workers = 12
     test_model(config, inference_model, device)
 
     logging.info(f"output directory: {config.path}")
@@ -147,6 +146,12 @@ if __name__ == '__main__':
     parser.add_argument('--code', type=str, help="Code to train on", required=True)
     parser.add_argument('--N_dec', type=int, help="The number of Transformer blocks", required=True)
     parser.add_argument('--d_model', type=int, help="The Embedding dimension", required=True)
+    parser.add_argument('--epochs', type=int, default=None)
+    parser.add_argument('--workers', type=int, default=None)
+    parser.add_argument('--batch_size', type=int, default=None)
+    parser.add_argument('--test_batch_size', type=int, default=None)
+    parser.add_argument('--lr', type=float, default=None)
+    parser.add_argument('--seed', type=int, default=None)
 
     args = parser.parse_args()
 
@@ -158,7 +163,20 @@ if __name__ == '__main__':
     config = preapre_args(args.code, standardize=standardize)
     config.N_dec = args.N_dec
     config.d_model = args.d_model
-    if config.N_dec == 10:
+    if args.epochs is not None:
+        config.epochs = args.epochs
+    elif config.N_dec == 10:
         config.epochs = 1500
+    if args.workers is not None:
+        config.workers = args.workers
+    if args.batch_size is not None:
+        config.batch_size = args.batch_size
+    if args.test_batch_size is not None:
+        config.test_batch_size = args.test_batch_size
+    if args.lr is not None:
+        config.lr = args.lr
+    if args.seed is not None:
+        config.seed = args.seed
+        set_seed(config.seed)
 
     aecct_training(config)

@@ -14,12 +14,14 @@ class Code():
 class Config():
 
     # training param
-    epochs: int = 1000
+    # Kaggle comparison configuration. The original value was 1000.
+    epochs: int = 500
     workers: int = 4
     lr: float = 1e-4
     gpus: str = '-1'
     batch_size: int = 128
-    test_batch_size: int = 512
+    # Larger evaluation batches reduce test-loop overhead on the GPU.
+    test_batch_size: int = 2048
     seed: int = 42
     eta_min=1e-6
 
