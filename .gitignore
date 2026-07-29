@@ -5,7 +5,10 @@ __pycache__/
 
 # C extensions
 *.so
-
+ECCT/LDPC__Code_*/
+ECCT/*.tar.gz
+ECCT/plots/
+AECCT-main/logs/
 # Distribution / packaging
 .Python
 build/

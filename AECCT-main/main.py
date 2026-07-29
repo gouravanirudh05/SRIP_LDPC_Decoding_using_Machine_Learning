@@ -40,7 +40,12 @@ def train_model(args: Config, model: Optional[torch.nn.Module] = None):
     EbNo_range_train = range(2, 8)
     std_train = [EbN0_to_std(ii, code.k / code.n) for ii in EbNo_range_train]
     std_test = [EbN0_to_std(ii, code.k / code.n) for ii in EbNo_range_test]
-    train_dataloader = DataLoader(ECC_Dataset(code, std_train, len=args.batch_size * 1000, zero_cw=True), batch_size=int(args.batch_size),
+    train_dataloader = DataLoader(ECC_Dataset(
+                                      code,
+                                      std_train,
+                                      len=args.batch_size * args.train_batches_per_epoch,
+                                      zero_cw=True),
+                                  batch_size=int(args.batch_size),
                                   shuffle=True, num_workers=args.workers)
     test_dataloader_list = [DataLoader(ECC_Dataset(code, [std_test[ii]], len=int(args.test_batch_size), zero_cw=False),
                                        batch_size=int(args.test_batch_size), shuffle=False, num_workers=args.workers) for ii in range(len(std_test))]
@@ -149,6 +154,7 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, default=None)
     parser.add_argument('--workers', type=int, default=None)
     parser.add_argument('--batch_size', type=int, default=None)
+    parser.add_argument('--train_batches_per_epoch', type=int, default=None)
     parser.add_argument('--test_batch_size', type=int, default=None)
     parser.add_argument('--lr', type=float, default=None)
     parser.add_argument('--seed', type=int, default=None)
@@ -171,6 +177,8 @@ if __name__ == '__main__':
         config.workers = args.workers
     if args.batch_size is not None:
         config.batch_size = args.batch_size
+    if args.train_batches_per_epoch is not None:
+        config.train_batches_per_epoch = args.train_batches_per_epoch
     if args.test_batch_size is not None:
         config.test_batch_size = args.test_batch_size
     if args.lr is not None:

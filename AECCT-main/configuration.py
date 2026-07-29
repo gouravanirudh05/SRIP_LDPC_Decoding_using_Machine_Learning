@@ -14,12 +14,14 @@ class Code():
 class Config():
 
     # training param
-    # Kaggle comparison configuration. The original value was 1000.
-    epochs: int = 500
+    # Kaggle baseline configuration. The original value was 1000.
+    epochs: int = 250
     workers: int = 4
     lr: float = 1e-4
     gpus: str = '-1'
     batch_size: int = 128
+    # Original implementation used 1000 batches per epoch.
+    train_batches_per_epoch: int = 200
     # Larger evaluation batches reduce test-loop overhead on the GPU.
     test_batch_size: int = 2048
     seed: int = 42
