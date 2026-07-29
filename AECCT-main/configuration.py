@@ -14,8 +14,8 @@ class Code():
 class Config():
 
     # training param
-    # Kaggle comparison configuration. The original value was 1000.
-    epochs: int = 500
+    # Kaggle baseline configuration. The original value was 1000.
+    epochs: int = 250
     workers: int = 4
     lr: float = 1e-4
     gpus: str = '-1'
