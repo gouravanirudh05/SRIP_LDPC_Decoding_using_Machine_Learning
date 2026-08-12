@@ -1,9 +1,0 @@
-.DS_Store
-__pycache__/
-ldpc-decoder-env/
-
-.vscode/
-__pycache__/
-.ipynb_checkpoints
-.pytest_cache
-results/
