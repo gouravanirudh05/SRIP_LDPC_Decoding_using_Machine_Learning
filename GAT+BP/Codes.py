@@ -6,6 +6,7 @@ https://arxiv.org/abs/2203.14966
 import numpy as np
 import torch
 import os
+from pathlib import Path
 
 def Read_pc_matrixrix_alist(fileName):
     with open(fileName, 'r') as file:
@@ -85,11 +86,11 @@ def FER(x_pred, x_gt):
 #############################################
 def Get_Generator_and_Parity(code, standard_form = False):
     n, k = code.n, code.k
-    path_pc_mat = os.path.join('Codes_DB', f'{code.code_type}_N{str(n)}_K{str(k)}')
+    path_pc_mat = Path(__file__).resolve().parent / 'Codes_DB' / f'{code.code_type}_N{str(n)}_K{str(k)}'
     if code.code_type in ['POLAR', 'BCH']:
-        ParityMatrix = np.loadtxt(path_pc_mat+'.txt')
+        ParityMatrix = np.loadtxt(path_pc_mat.with_suffix('.txt'))
     elif code.code_type in ['CCSDS', 'LDPC', 'MACKAY']:
-        ParityMatrix = Read_pc_matrixrix_alist(path_pc_mat+'.alist')
+        ParityMatrix = Read_pc_matrixrix_alist(path_pc_mat.with_suffix('.alist'))
     else:
         raise Exception(f'Wrong code {code.code_type}')
     if standard_form and code.code_type not in ['CCSDS', 'LDPC', 'MACKAY']:

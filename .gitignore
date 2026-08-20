@@ -10,6 +10,8 @@ ECCT/LDPC__Code_*/
 ECCT/*.tar.gz
 ECCT/plots/
 AECCT-main/logs/
+# Locally generated GAT+BP checkpoints.
+GAT+BP/Results_GAT_BP/
 # Large trained model artifact; keep locally, but do not commit to GitHub.
 /LDPC__Code_n_49_k_24_ECCT Results/best_model
 # Distribution / packaging
