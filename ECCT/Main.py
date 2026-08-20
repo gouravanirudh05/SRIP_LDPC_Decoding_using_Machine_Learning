@@ -176,7 +176,12 @@ def main(args):
         if loss < best_loss:
             best_loss = loss
             torch.save(model, os.path.join(args.path, 'best_model'))
-        if epoch == args.epochs:
+        # Evaluate at the halfway point as well as the end. AECCT reports at two
+        # budgets (phase-1 FP32, then phase-2 ternary), so a single ECCT run at
+        # 2x the phase budget yields both matched comparison points.
+        if epoch == args.epochs // 2 or epoch == args.epochs:
+            logging.info(f'--- evaluation at epoch {epoch} '
+                         f'({epoch * args.train_batches_per_epoch} optimizer updates) ---')
             test(model, device, test_dataloader_list, EbNo_range_test)
 
 ##################################################################################################################

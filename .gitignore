@@ -1,14 +1,17 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+.venv-gnn/* 
 *.py[codz]
 *$py.class
-
+*.tar.gz
 # C extensions
 *.so
 ECCT/LDPC__Code_*/
 ECCT/*.tar.gz
 ECCT/plots/
 AECCT-main/logs/
+# Large trained model artifact; keep locally, but do not commit to GitHub.
+/LDPC__Code_n_49_k_24_ECCT Results/best_model
 # Distribution / packaging
 .Python
 build/
